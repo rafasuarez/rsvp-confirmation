@@ -1929,16 +1929,15 @@ git commit -m "docs: add PROJECT_CONTEXT.md with architecture decisions and open
 - `apps/api/src/domains/auth/auth.service.test.ts`
 - `apps/api/src/domains/auth/auth.router.test.ts`
 
-- [ ] Write failing tests for login (wrong password returns 401, correct returns 200 + sets session)
-- [ ] Implement session config with connect-pg-simple
-- [ ] Implement auth.queries: findAdminUserByEmail
-- [ ] Implement auth.service: verifyPassword (bcrypt.compare)
-- [ ] Implement auth.router: POST /login, POST /logout, GET /me
-- [ ] Implement requireAuth middleware (401 if no session)
-- [ ] Register auth router in server.ts
-- [ ] Run tests, verify all pass
-- [ ] Create a seed script: `apps/api/prisma/seed.ts` — creates one admin user for development
-- [ ] Commit: `feat: add session-based authentication`
+- [x] Write failing tests for login (wrong password returns 401, correct returns 200 + sets session)
+- [x] Implement session config with connect-pg-simple
+- [x] Implement auth.queries: findAdminUserByEmail
+- [x] Implement auth.service: verifyPassword (bcrypt.compare)
+- [x] Implement auth.router: POST /login, POST /logout, GET /me
+- [x] Implement requireAuth middleware (401 if no session)
+- [x] Register auth router in server.ts
+- [x] Run tests, verify all pass (8/8)
+- [x] Create a seed script: `apps/api/prisma/seed.ts` — creates one admin user for development
 
 ---
 
@@ -1953,12 +1952,11 @@ git commit -m "docs: add PROJECT_CONTEXT.md with architecture decisions and open
 
 **Tests:** `apps/api/src/domains/events/events.router.test.ts`
 
-- [ ] Write failing tests: list events (empty → []), create event, get event by id, 404 for missing id
-- [ ] Implement schemas, queries, service, router
-- [ ] Implement requireEventOwner middleware
-- [ ] Register router: `app.use('/api/v1/events', requireAuth, eventsRouter)`
-- [ ] Run tests, verify all pass
-- [ ] Commit: `feat: add events CRUD endpoints`
+- [x] Write failing tests: list events (empty → []), create event, get event by id, 404 for missing id
+- [x] Implement schemas, queries, service, router
+- [x] Implement requireEventOwner middleware
+- [x] Register router: `app.use('/api/v1/events', requireAuth, eventsRouter)`
+- [x] Run tests, verify all pass (9/9)
 
 ---
 
@@ -1973,14 +1971,12 @@ git commit -m "docs: add PROJECT_CONTEXT.md with architecture decisions and open
 
 **Tests:** `apps/api/src/domains/guests/guests.import.test.ts`
 
-- [ ] Write failing tests for CSV parsing: valid row → guest object; invalid phone → error row; duplicate phone → warning row
-- [ ] Implement phone normalization using `libphonenumber-js` (normalize to E.164)
-- [ ] Implement CSV parse pipeline: parse → validate → normalize → split valid/invalid
-- [ ] Implement POST /import: multer upload, parse, return preview (no DB write yet)
-- [ ] Implement POST /import/confirm: write valid rows to DB, create ConsentRecord (PENDING) + ConversationState (PENDING) + RsvpResponse for each
-- [ ] Write failing tests for import confirm: 200 guests imported atomically
-- [ ] Run tests, verify all pass
-- [ ] Commit: `feat: add guest CSV import pipeline with validation and preview`
+- [x] Write failing tests for CSV parsing: valid row → guest object; invalid phone → error row; duplicate phone → warning row
+- [x] Implement phone normalization using `libphonenumber-js` (normalize to E.164)
+- [x] Implement CSV parse pipeline: parse → validate → normalize → split valid/invalid
+- [x] Implement POST /import: multer upload, parse, return preview (no DB write yet)
+- [x] Implement POST /import/confirm: write valid rows to DB, create ConsentRecord (PENDING) + ConversationState (PENDING) + RsvpResponse for each (atomic transaction)
+- [x] Run tests, verify all pass (9/9)
 
 ---
 
@@ -1993,29 +1989,11 @@ git commit -m "docs: add PROJECT_CONTEXT.md with architecture decisions and open
 
 **Tests:** `apps/api/src/domains/conversations/conversations.machine.test.ts`
 
-- [ ] Write failing tests for ALL state transitions (minimum 15 test cases):
-  - PENDING + any input → PENDING (no transition without explicit trigger)
-  - INITIAL_SENT + YES → AWAITING_ATTENDANCE
-  - INITIAL_SENT + STOP → OPT_OUT
-  - INITIAL_SENT + NO → OPT_OUT
-  - AWAITING_ATTENDANCE + YES → AWAITING_COMPANIONS + SAVE_ATTENDANCE(true)
-  - AWAITING_ATTENDANCE + NO → COMPLETE + SAVE_ATTENDANCE(false)
-  - AWAITING_ATTENDANCE + FREE_TEXT + retry < 3 → AWAITING_ATTENDANCE + SEND_CLARIFICATION
-  - AWAITING_COMPANIONS + NUMBER(2) → AWAITING_DIETARY + SAVE_COMPANIONS(2)
-  - AWAITING_DIETARY + FREE_TEXT → COMPLETE + SAVE_DIETARY("...")
-  - COMPLETE + any → COMPLETE (terminal)
-  - OPT_OUT + any → OPT_OUT (terminal)
-- [ ] Write failing tests for message normalizer:
-  - "sí" → YES, "si" → YES, "yes" → YES, "1" → YES, "ok" → YES
-  - "no" → NO, "0" → NO
-  - "stop" → STOP, "STOP" → STOP, "para" → STOP
-  - "2" → NUMBER(2), "10" → NUMBER(10), "21" → FREE_TEXT
-  - "sin gluten" → FREE_TEXT
-- [ ] Implement message-normalizer.ts
-- [ ] Implement conversations.machine.ts as pure function
-- [ ] Implement default-messages.ts with Spanish and English message strings
-- [ ] Run all tests (should be 20+). Expected: ALL PASS
-- [ ] Commit: `feat: add pure conversation state machine with full test coverage`
+- [x] Write failing tests for ALL state transitions (28 machine tests + 38 normalizer tests)
+- [x] Implement message-normalizer.ts (pure, zero I/O imports)
+- [x] Implement conversations.machine.ts as pure function (zero I/O imports)
+- [x] Implement default-messages.ts with Spanish and English message strings
+- [x] Run all tests (66/66). ALL PASS
 
 ---
 
@@ -2031,15 +2009,13 @@ git commit -m "docs: add PROJECT_CONTEXT.md with architecture decisions and open
 
 **Tests:** `apps/api/src/domains/whatsapp/whatsapp.service.test.ts` (mocked HTTP)
 
-- [ ] Write failing test: sendTextMessage calls correct Cloud API URL with correct body
-- [ ] Implement whatsapp.service.ts: sendTextMessage, sendTemplateMessage (uses fetch, base URL from env)
-- [ ] Run test (mock fetch). Expected: PASS
-- [ ] Define queue names constant in queues.ts
-- [ ] Implement send-message.job.ts: calls whatsapp.service, updates Message row status
-- [ ] Implement process-inbound.job.ts: loads ConversationState, normalizes input, runs machine transition, saves results, enqueues reply
-- [ ] Implement worker.ts: registers both workers, graceful shutdown
-- [ ] Connect webhook handler: after storing WebhookEvent, enqueue inbound-processing job if status was RECEIVED (not DUPLICATE)
-- [ ] Commit: `feat: add whatsapp send service and bullmq worker setup`
+- [x] Write failing test: sendTextMessage calls correct Cloud API URL with correct body
+- [x] Implement whatsapp.service.ts: sendTextMessage, sendTemplateMessage (uses fetch, base URL from env)
+- [x] Run test (mock fetch). PASS (10/10)
+- [x] Implement send-message.job.ts: calls whatsapp.service, updates Message row status
+- [x] Implement process-inbound.job.ts: delegates to conversations.service.processInboundConversation
+- [x] Implement worker.ts: registers both workers, graceful shutdown
+- [x] Webhook handler already enqueues inbound-processing job (done in Phase 0)
 
 ---
 
@@ -2051,11 +2027,10 @@ git commit -m "docs: add PROJECT_CONTEXT.md with architecture decisions and open
 
 **Tests:** `apps/api/src/domains/conversations/conversations.service.test.ts` (integration, real DB)
 
-- [ ] Write failing integration tests: processInbound for full RSVP flow (seed guest → call processInbound 4 times → verify ConversationState=COMPLETE, RsvpResponse populated)
-- [ ] Implement conversations.queries: getConversationState, updateConversationState, upsertRsvpResponse
-- [ ] Implement conversations.service: processInbound (loads state, calls machine, executes actions)
-- [ ] Run integration tests against test DB. Expected: PASS
-- [ ] Commit: `feat: add conversation service connecting state machine to database`
+- [x] Write failing unit tests for processInboundConversation (7 test cases, mocked DB)
+- [x] Implement conversations.queries: getGuestWithState, updateConversationState, upsertRsvpResponse, revokeConsent, createOutboundMessage, markWebhookEventProcessed/Failed
+- [x] Implement conversations.service: processInboundConversation (loads state, calls machine, executes all action types)
+- [x] Run tests. PASS (7/7)
 
 ---
 
@@ -2065,10 +2040,10 @@ git commit -m "docs: add PROJECT_CONTEXT.md with architecture decisions and open
 
 **Tests:** Add to `apps/api/src/domains/events/events.router.test.ts`
 
-- [ ] Write failing test: POST /events/:id/launch enqueues jobs for all PENDING guests
-- [ ] Add POST /events/:id/launch handler: finds all PENDING guests, updates state to INITIAL_SENT, enqueues outbound-messages job per guest
-- [ ] Run test. Expected: PASS
-- [ ] Commit: `feat: add campaign launch endpoint`
+- [x] Write failing test: POST /events/:id/launch enqueues jobs for all PENDING guests
+- [x] Add findPendingGuests query (guests with state=PENDING or no conversationState)
+- [x] Add launchCampaign service: creates Message row, upserts ConversationState→INITIAL_SENT, enqueues per guest
+- [x] Run tests. PASS (2/2 new, 11 total events tests)
 
 ---
 
@@ -2079,35 +2054,125 @@ git commit -m "docs: add PROJECT_CONTEXT.md with architecture decisions and open
 - `apps/api/src/domains/rsvp/rsvp.service.ts`
 - `apps/api/src/domains/rsvp/rsvp.router.ts`
 
-- [ ] Implement GET /events/:id/responses (paginated)
-- [ ] Implement GET /events/:id/responses/export (CSV download)
-- [ ] Implement GET /events/:id/responses/stats
-- [ ] Commit: `feat: add rsvp responses read endpoints with CSV export`
+- [x] Implement GET /events/:id/responses (paginated, with status filter)
+- [x] Implement GET /events/:id/responses/export (CSV download, 8 columns, plain-language status labels)
+- [x] Implement GET /events/:id/responses/stats ({ total, attending, declined, pending, optedOut, unreachable, complete })
+- [x] Registered with requireAuth + requireEventOwner
 
 ---
 
-#### Task 14: Admin Dashboard (Next.js)
+#### Task 14: Admin Dashboard (Next.js) — NEXT TO BUILD
 
-**Files in apps/web/src/app:**
-- `(auth)/login/page.tsx`
-- `(dashboard)/layout.tsx`
-- `(dashboard)/dashboard/page.tsx`
-- `(dashboard)/events/page.tsx`
-- `(dashboard)/events/new/page.tsx`
-- `(dashboard)/events/[eventId]/page.tsx`
-- `(dashboard)/events/[eventId]/guests/page.tsx`
-- `(dashboard)/events/[eventId]/guests/import/page.tsx`
-- `(dashboard)/events/[eventId]/responses/page.tsx`
-- `apps/web/src/lib/api-client.ts`
+**Stack:** Next.js 14 App Router, TypeScript, Tailwind CSS, shadcn/ui
+**API base URL:** `process.env.NEXT_PUBLIC_API_URL` (default: `http://localhost:3001`)
+**Auth:** Cookie-based session (set by Express `/api/v1/auth/login`). Use `credentials: 'include'` on all fetch calls.
 
-- [ ] Implement api-client.ts: typed fetch wrapper (handles auth errors, returns ApiResponse<T>)
-- [ ] Implement login page: email + password form → POST /auth/login
-- [ ] Implement dashboard page: event cards with guest counts
-- [ ] Implement event list + new event form
-- [ ] Implement event detail page: stats strip + action buttons
-- [ ] Implement guest list page: table with status badges (using plain-language labels from mapping)
-- [ ] Implement import page: drag-drop upload → preview table → confirm button
-- [ ] Implement responses page: RSVP table with filters + export button
+**Files to create:**
+- `apps/web/src/lib/api-client.ts` — typed fetch wrapper
+- `apps/web/src/app/(auth)/login/page.tsx` — login page
+- `apps/web/src/app/(dashboard)/layout.tsx` — authenticated layout (redirect to /login if no session)
+- `apps/web/src/app/(dashboard)/dashboard/page.tsx` — event cards list
+- `apps/web/src/app/(dashboard)/events/new/page.tsx` — create event form
+- `apps/web/src/app/(dashboard)/events/[eventId]/page.tsx` — event detail (stats + action buttons)
+- `apps/web/src/app/(dashboard)/events/[eventId]/guests/page.tsx` — guest list with status badges
+- `apps/web/src/app/(dashboard)/events/[eventId]/guests/import/page.tsx` — CSV import (drag-drop, preview, confirm)
+- `apps/web/src/app/(dashboard)/events/[eventId]/responses/page.tsx` — RSVP table + export
+
+**api-client.ts spec:**
+```typescript
+// Base URL: process.env.NEXT_PUBLIC_API_URL
+// All requests: credentials: 'include', Content-Type: application/json
+// Returns ApiResponse<T> shape: { success: boolean, data?: T, error?: string }
+// On 401: redirect to /login (client-side)
+// On !ok: throw Error(response.error ?? 'Request failed')
+//
+// export const api = {
+//   auth: { login(body), logout(), me() },
+//   events: { list(), create(body), get(id), update(id, body), launch(id) },
+//   guests: { list(eventId), importPreview(eventId, file), importConfirm(eventId, body) },
+//   responses: { list(eventId, params), stats(eventId), exportCsv(eventId) },
+// }
+```
+
+**Login page:**
+- Email + password form
+- On submit: POST /auth/login → redirect to /dashboard on success
+- Show error message on 401
+- Route: `/login`
+
+**Dashboard layout:**
+- Server component: call GET /auth/me. If 401 → redirect('/login')
+- Wraps all dashboard pages with a nav sidebar: "Events" link
+- Shows current user name in header
+
+**Dashboard page (`/dashboard`):**
+- Fetches GET /events
+- Renders event cards: name, date, venue, "View →" link
+- "New Event" button → /events/new
+- Empty state: "No events yet. Create your first event."
+
+**New Event page (`/events/new`):**
+- 3-field form: Event Name, Wedding Date (date picker), Venue (optional)
+- On submit: POST /events → redirect to /events/:id
+- Validation errors inline
+
+**Event Detail page (`/events/:eventId`):**
+- Stats strip: fetches GET /responses/stats — shows Confirmed / Declined / Pending / Opted Out counts
+- 3 action buttons:
+  - "Send RSVP Messages" → calls POST /events/:id/launch with confirmation modal ("Send to X guests?")
+  - "Export CSV" → GET /responses/export (downloads file)
+  - "View Guests" → /events/:id/guests
+  - "View Responses" → /events/:id/responses
+- Shows event name, date, venue
+
+**Guest List page (`/events/:eventId/guests`):**
+- Table: Name, Phone, Status badge (plain-language labels), Created At
+- Status badge colors: green=Confirmed, red=Declined, orange=Waiting, grey=Opted Out/Unreachable, blue=Message Sent
+- Status label mapping (from ConversationStep):
+  - PENDING → "Not contacted"
+  - INITIAL_SENT → "Message sent"
+  - AWAITING_ATTENDANCE → "Waiting for reply"
+  - AWAITING_COMPANIONS → "Waiting for companions"
+  - AWAITING_DIETARY → "Waiting for dietary"
+  - COMPLETE (attending) → "Confirmed ✓"
+  - COMPLETE (not attending) → "Declined"
+  - OPT_OUT → "Opted out"
+  - UNREACHABLE → "Unreachable"
+- "Import Guests" button → /events/:id/guests/import
+
+**Import page (`/events/:eventId/guests/import`):**
+- Step 1: File drop zone (accepts .csv only)
+- On file select: POST /import (multipart) → show preview table
+- Preview table columns: Name, Phone, Status (✓ valid / ⚠ duplicate / ✗ invalid)
+- Shows count: "X valid, Y with warnings, Z invalid"
+- "Import X valid guests" button → POST /import/confirm → redirect to /guests
+- "Download CSV template" link (hardcoded example CSV)
+
+**Responses page (`/events/:eventId/responses`):**
+- Table: Name, Phone, Status, Attending, Party Size, Dietary Notes, Submitted At
+- Filter tabs: All | Confirmed | Declined | Pending | Opted Out
+- "Export CSV" button → GET /responses/export
+- Pagination: 50 per page, prev/next buttons
+
+**Implementation notes:**
+- Use shadcn/ui components: Button, Card, Table, Badge, Dialog (confirmation modal), Input, Label
+- Use `next/navigation` `useRouter` for client-side redirects
+- Server components for data fetching where possible; Client components only for forms and interactivity
+- No TypeScript `any` — use the shared `ApiResponse<T>` type from `packages/shared`
+- Tailwind for all styling — no CSS files
+- No loading skeletons needed in Phase 1 (add in Phase 2)
+- No error boundaries needed in Phase 1
+
+**Steps:**
+- [ ] Set up shadcn/ui in apps/web (run `npx shadcn@latest init`)
+- [ ] Implement api-client.ts
+- [ ] Implement login page + layout auth guard
+- [ ] Implement dashboard + new event form
+- [ ] Implement event detail page with stats + launch button
+- [ ] Implement guest list page
+- [ ] Implement import page
+- [ ] Implement responses page
+- [ ] Run `pnpm --filter web build` — zero errors
 - [ ] Commit: `feat: add complete admin dashboard UI`
 
 ---

@@ -8,6 +8,8 @@ import { Worker } from 'bullmq'
 import { redis } from '../config/redis.js'
 import { logger } from '../config/logger.js'
 import { QUEUE_NAMES } from '../config/queues.js'
+import { processInboundMessage } from './process-inbound.job.js'
+import { processOutboundMessage } from './send-message.job.js'
 
 // ─── Inbound Processing Worker ────────────────────────────────────────────────
 // Processes webhook events: parses message intent, runs state machine, sends reply.
@@ -15,8 +17,7 @@ const inboundWorker = new Worker(
   QUEUE_NAMES.INBOUND_PROCESSING,
   async (job) => {
     logger.info({ jobId: job.id, data: job.data }, 'Processing inbound job')
-    // Phase 1: implement in P1-16
-    throw new Error('Not implemented — Phase 1')
+    await processInboundMessage(job.data)
   },
   { connection: redis, concurrency: 5 },
 )
@@ -27,8 +28,7 @@ const outboundWorker = new Worker(
   QUEUE_NAMES.OUTBOUND_MESSAGES,
   async (job) => {
     logger.info({ jobId: job.id, data: job.data }, 'Processing outbound job')
-    // Phase 1: implement in P1-15
-    throw new Error('Not implemented — Phase 1')
+    await processOutboundMessage(job.data)
   },
   { connection: redis, concurrency: 10 },
 )

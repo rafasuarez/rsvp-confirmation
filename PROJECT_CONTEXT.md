@@ -2,7 +2,7 @@
 
 ## Current Phase
 Phase 0 — Foundation (completed 2026-04-01)
-Phase 1 — MVP (starting)
+Phase 1 — MVP (completed 2026-04-01, backend API)
 
 ## What This Is
 WhatsApp-based RSVP management system for Wedding Planners.
@@ -63,10 +63,10 @@ JSON.parse is done manually after HMAC validation passes.
 ## Recent Changes
 - 2026-04-01: Initial PROJECT_CONTEXT.md created. Full implementation plan written.
 - 2026-04-01: Phase 0 implemented — monorepo scaffold, Prisma schema, Express bootstrap, webhook endpoint, Next.js shell.
+- 2026-04-01: Phase 1 backend API implemented — auth, events CRUD, guest CSV import, conversation state machine, WhatsApp send service, BullMQ workers, conversation service layer, campaign launch, RSVP responses API. 111 tests passing.
 
 ## Next Steps
 1. **CRITICAL:** Submit WhatsApp template messages to Meta for approval (1–5 days to approve)
-2. Begin Phase 1: auth (bcrypt + express-session), events CRUD, guest import
-3. Build state machine (conversations.machine.ts) with unit tests
-4. Wire BullMQ workers for outbound sending and inbound processing
-5. Build Next.js admin dashboard
+2. Build Next.js admin dashboard (Phase 1 frontend: login, events, guests, import, responses pages)
+3. Heroku deploy — Phase 1 staging
+4. Run end-to-end RSVP flow test on real WhatsApp number
