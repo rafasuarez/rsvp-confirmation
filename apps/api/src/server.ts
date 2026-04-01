@@ -1,8 +1,15 @@
 import express, { type Express } from 'express'
 import pinoHttp from 'pino-http'
 import { logger } from './config/logger.js'
+import { sessionMiddleware } from './config/session.js'
 import { healthRouter } from './domains/health/health.router.js'
 import { webhookRouter } from './domains/webhooks/webhook.router.js'
+import { authRouter } from './domains/auth/auth.router.js'
+import { eventsRouter } from './domains/events/events.router.js'
+import { guestsRouter } from './domains/guests/guests.router.js'
+import { rsvpRouter } from './domains/rsvp/rsvp.router.js'
+import { requireAuth } from './middleware/require-auth.js'
+import { requireEventOwner } from './middleware/require-event-owner.js'
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js'
 
 export function createServer(): Express {
@@ -21,6 +28,9 @@ export function createServer(): Express {
     }),
   )
 
+  // Session middleware (before routes)
+  app.use(sessionMiddleware)
+
   // Raw body for webhook HMAC validation (must come before json middleware)
   app.use(
     '/webhook/whatsapp',
@@ -34,6 +44,20 @@ export function createServer(): Express {
   // Routes
   app.use('/', healthRouter)
   app.use('/api/v1', webhookRouter)
+  app.use('/api/v1/auth', authRouter)
+  app.use('/api/v1/events', requireAuth, eventsRouter)
+  app.use(
+    '/api/v1/events/:eventId/guests',
+    requireAuth,
+    requireEventOwner,
+    guestsRouter,
+  )
+  app.use(
+    '/api/v1/events/:eventId/responses',
+    requireAuth,
+    requireEventOwner,
+    rsvpRouter,
+  )
 
   // 404 and error handlers (must be last)
   app.use(notFoundHandler)
