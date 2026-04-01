@@ -1,0 +1,16 @@
+export enum ConversationStep {
+  PENDING = 'PENDING',
+  INITIAL_SENT = 'INITIAL_SENT',
+  AWAITING_ATTENDANCE = 'AWAITING_ATTENDANCE',
+  AWAITING_COMPANIONS = 'AWAITING_COMPANIONS',
+  AWAITING_DIETARY = 'AWAITING_DIETARY',
+  COMPLETE = 'COMPLETE',
+  OPT_OUT = 'OPT_OUT',
+  UNREACHABLE = 'UNREACHABLE',
+}
+
+export const TERMINAL_STATES = new Set<ConversationStep>([
+  ConversationStep.COMPLETE,
+  ConversationStep.OPT_OUT,
+  ConversationStep.UNREACHABLE,
+])

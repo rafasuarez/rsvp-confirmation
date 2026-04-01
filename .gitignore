@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+.next/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Prisma
+apps/api/prisma/migrations/dev.db
+
+# Logs
+*.log
+pino.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Docker volumes (if any local overrides)
+.docker-data/
+
+# Test coverage
+coverage/
+
+# Vercel / Netlify
+.vercel/
+.netlify/

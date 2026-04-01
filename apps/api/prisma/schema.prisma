@@ -1,0 +1,270 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum ConversationStep {
+  PENDING
+  INITIAL_SENT
+  AWAITING_ATTENDANCE
+  AWAITING_COMPANIONS
+  AWAITING_DIETARY
+  COMPLETE
+  OPT_OUT
+  UNREACHABLE
+}
+
+enum ConsentStatus {
+  PENDING
+  GRANTED
+  REVOKED
+}
+
+enum ConsentMechanism {
+  whatsapp_reply
+  manual
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  INVALID
+}
+
+enum MessageContentType {
+  text
+  template
+  interactive
+}
+
+enum WebhookEventStatus {
+  RECEIVED
+  PROCESSING
+  PROCESSED
+  FAILED
+  DUPLICATE
+}
+
+enum WebhookEventType {
+  messages
+  statuses
+}
+
+enum ReminderStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum ReminderTargetScope {
+  all_pending
+  not_attending
+  no_response
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  events Event[]
+
+  @@map("admin_users")
+}
+
+model Event {
+  id              String   @id @default(cuid())
+  adminUserId     String   @map("admin_user_id")
+  name            String
+  slug            String   @unique
+  eventDate       DateTime @map("event_date")
+  venue           String?
+  description     String?
+  isActive        Boolean  @default(true) @map("is_active")
+  waBusinessId    String?  @map("wa_ba_id")
+  waPhoneNumberId String?  @map("wa_phone_number_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  adminUser     AdminUser      @relation(fields: [adminUserId], references: [id])
+  guests        Guest[]
+  reminders     Reminder[]
+  webhookEvents WebhookEvent[]
+  flowSteps     FlowStep[]
+
+  @@map("events")
+}
+
+model Guest {
+  id          String   @id @default(cuid())
+  eventId     String   @map("event_id")
+  phone       String
+  name        String
+  email       String?
+  partySize   Int?     @map("party_size")
+  language    String   @default("es")
+  notes       String?
+  importBatch String?  @map("import_batch")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  event             Event              @relation(fields: [eventId], references: [id])
+  consentRecord     ConsentRecord?
+  conversationState ConversationState?
+  rsvpResponse      RsvpResponse?
+  messages          Message[]
+
+  @@unique([eventId, phone])
+  @@map("guests")
+}
+
+model ConsentRecord {
+  id         String            @id @default(cuid())
+  guestId    String            @unique @map("guest_id")
+  status     ConsentStatus     @default(PENDING)
+  grantedAt  DateTime?         @map("granted_at")
+  revokedAt  DateTime?         @map("revoked_at")
+  mechanism  ConsentMechanism?
+  ipAddress  String?           @map("ip_address")
+  rawPayload Json?             @map("raw_payload")
+  createdAt  DateTime          @default(now()) @map("created_at")
+  updatedAt  DateTime          @updatedAt @map("updated_at")
+
+  guest Guest @relation(fields: [guestId], references: [id])
+
+  @@map("consent_records")
+}
+
+model ConversationState {
+  id              String           @id @default(cuid())
+  guestId         String           @unique @map("guest_id")
+  state           ConversationStep @default(PENDING)
+  currentStepIndex Int             @default(0) @map("current_step_index")
+  retryCount      Int              @default(0) @map("retry_count")
+  lastMessageAt   DateTime?        @map("last_message_at")
+  lastInboundAt   DateTime?        @map("last_inbound_at")
+  expiresAt       DateTime?        @map("expires_at")
+  metadata        Json?
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  guest Guest @relation(fields: [guestId], references: [id])
+
+  @@map("conversation_states")
+}
+
+model RsvpResponse {
+  id                 String    @id @default(cuid())
+  guestId            String    @unique @map("guest_id")
+  isAttending        Boolean?  @map("is_attending")
+  confirmedPartySize Int?      @map("confirmed_party_size")
+  dietaryNotes       String?   @map("dietary_notes")
+  additionalNotes    String?   @map("additional_notes")
+  submittedAt        DateTime? @map("submitted_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  guest Guest @relation(fields: [guestId], references: [id])
+
+  @@map("rsvp_responses")
+}
+
+model Message {
+  id           String             @id @default(cuid())
+  guestId      String             @map("guest_id")
+  direction    MessageDirection
+  waMessageId  String?            @unique @map("wa_message_id")
+  content      String
+  contentType  MessageContentType @default(text) @map("content_type")
+  templateName String?            @map("template_name")
+  status       MessageStatus      @default(QUEUED)
+  errorCode    String?            @map("error_code")
+  errorMessage String?            @map("error_message")
+  sentAt       DateTime?          @map("sent_at")
+  deliveredAt  DateTime?          @map("delivered_at")
+  readAt       DateTime?          @map("read_at")
+  rawPayload   Json?              @map("raw_payload")
+  createdAt    DateTime           @default(now()) @map("created_at")
+
+  guest Guest @relation(fields: [guestId], references: [id])
+
+  @@index([guestId])
+  @@index([waMessageId])
+  @@map("messages")
+}
+
+model WebhookEvent {
+  id              String             @id @default(cuid())
+  eventId         String?            @map("event_id")
+  source          String             @default("whatsapp")
+  waMessageId     String?            @map("wa_message_id")
+  type            WebhookEventType?
+  status          WebhookEventStatus @default(RECEIVED)
+  processingError String?            @map("processing_error")
+  rawPayload      Json               @map("raw_payload")
+  receivedAt      DateTime           @default(now()) @map("received_at")
+  processedAt     DateTime?          @map("processed_at")
+
+  event Event? @relation(fields: [eventId], references: [id])
+
+  @@unique([source, waMessageId])
+  @@index([status])
+  @@index([receivedAt])
+  @@map("webhook_events")
+}
+
+model FlowStep {
+  id               String   @id @default(cuid())
+  eventId          String   @map("event_id")
+  stepKey          String   @map("step_key")
+  order            Int
+  isActive         Boolean  @default(true) @map("is_active")
+  messageTemplates Json     @map("message_templates")
+  validationRules  Json     @map("validation_rules")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@unique([eventId, stepKey])
+  @@map("flow_steps")
+}
+
+model Reminder {
+  id          String              @id @default(cuid())
+  eventId     String              @map("event_id")
+  name        String
+  scheduledAt DateTime            @map("scheduled_at")
+  status      ReminderStatus      @default(PENDING)
+  sentCount   Int                 @default(0) @map("sent_count")
+  targetScope ReminderTargetScope @default(no_response) @map("target_scope")
+  processedAt DateTime?           @map("processed_at")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@index([status, scheduledAt])
+  @@map("reminders")
+}
