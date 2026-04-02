@@ -19,12 +19,19 @@ export default function LoginPage() {
     setLoading(true)
 
     const form = new FormData(e.currentTarget)
-    const email = form.get('email') as string
-    const password = form.get('password') as string
+    const email = (form.get('email') as string | null) ?? ''
+    const password = (form.get('password') as string | null) ?? ''
+
+    if (!email || !password) {
+      setError('Por favor ingresa tu correo y contraseña')
+      setLoading(false)
+      return
+    }
 
     try {
       await authApi.login(email, password)
-      const redirect = searchParams.get('redirect') ?? '/events'
+      const raw = searchParams.get('redirect') ?? '/events'
+      const redirect = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/events'
       router.push(redirect)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al iniciar sesión')
