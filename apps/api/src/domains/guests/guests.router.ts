@@ -5,7 +5,10 @@ import { logger } from '../../config/logger.js'
 import { ImportConfirmBodySchema } from './guests.schemas.js'
 import { listGuests, previewCsvImport, confirmCsvImport } from './guests.service.js'
 
-const upload = multer({ storage: multer.memoryStorage() })
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+})
 
 export const guestsRouter: IRouter = Router({ mergeParams: true })
 

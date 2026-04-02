@@ -2,7 +2,8 @@
 
 ## Current Phase
 Phase 0 — Foundation (completed 2026-04-01)
-Phase 1 — MVP (completed 2026-04-01, backend API)
+Phase 1 — MVP backend API (completed 2026-04-01, 111 tests)
+Phase 1 — Admin dashboard (completed 2026-04-01, Next.js 14 + shadcn/ui)
 
 ## What This Is
 WhatsApp-based RSVP management system for Wedding Planners.
@@ -64,9 +65,13 @@ JSON.parse is done manually after HMAC validation passes.
 - 2026-04-01: Initial PROJECT_CONTEXT.md created. Full implementation plan written.
 - 2026-04-01: Phase 0 implemented — monorepo scaffold, Prisma schema, Express bootstrap, webhook endpoint, Next.js shell.
 - 2026-04-01: Phase 1 backend API implemented — auth, events CRUD, guest CSV import, conversation state machine, WhatsApp send service, BullMQ workers, conversation service layer, campaign launch, RSVP responses API. 111 tests passing.
+- 2026-04-01: Phase 1 admin dashboard implemented — Next.js 14 App Router, shadcn/ui, login page, events list/create, event detail with stats, CSV import wizard, paginated responses table with filter + CSV export. Production build passing.
 
-## Next Steps
-1. **CRITICAL:** Submit WhatsApp template messages to Meta for approval (1–5 days to approve)
-2. Build Next.js admin dashboard (Phase 1 frontend: login, events, guests, import, responses pages)
-3. Heroku deploy — Phase 1 staging
-4. Run end-to-end RSVP flow test on real WhatsApp number
+## Next Steps (Phase 2 — WhatsApp Integration)
+1. **CRITICAL:** Submit WhatsApp template messages to Meta for approval (1–5 days to approve) if not done
+2. Wire `send-message.job.ts` to real WhatsApp Cloud API (`WA_ACCESS_TOKEN`, `WA_PHONE_NUMBER_ID`)
+3. Wire `process-inbound.job.ts` state machine transitions to send next message in sequence
+4. End-to-end RSVP flow test on a real WhatsApp number with a staging event
+5. Heroku deploy — Phase 1 staging (web + worker dynos)
+6. Add scheduled retry job for `UNREACHABLE` guests (max 3 retries, configurable backoff)
+7. Email/push notification to planner when campaign completes
