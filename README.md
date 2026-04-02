@@ -10,12 +10,13 @@ Non-technical operators import a guest list, trigger an automated conversational
 | Phase | Status |
 |-------|--------|
 | Phase 0 — Foundation | ✅ Complete |
-| Phase 1 — MVP (auth, events, guests, state machine, workers) | 🔄 In progress |
-| Phase 2 — Operational improvements | Planned |
+| Phase 1 — Backend API (auth, events, guests, state machine, workers) | ✅ Complete — 111 tests |
+| Phase 1 — Admin Dashboard (Next.js 14, shadcn/ui) | ✅ Complete |
+| Phase 2 — WhatsApp Integration (outbound campaigns, inbound webhook flow) | 🔄 Next |
 | Phase 3 — Configurable flows | Planned |
 | Phase 4 — SaaS | Future |
 
-See [Implementation Plan](docs/superpowers/plans/2026-04-01-whatsapp-rsvp-wedding-planner.md) and [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) for architecture decisions and next steps.
+See [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) for architecture decisions and next steps.
 
 ---
 
@@ -160,6 +161,23 @@ See `apps/api/.env.example` for all required variables.
 | `GET` | `/api/v1/events/:id/responses/stats` | ✓ | Response stats |
 | `GET` | `/api/v1/webhook/whatsapp` | — | Webhook verification |
 | `POST` | `/api/v1/webhook/whatsapp` | — | Receive messages |
+
+---
+
+## Admin Dashboard (Phase 1)
+
+Built with Next.js 14 App Router + shadcn/ui. Runs on `:3000`.
+
+| Screen | Path | Description |
+|--------|------|-------------|
+| Login | `/login` | Email/password auth, session cookie |
+| Events | `/events` | List events, create new event |
+| Event detail | `/events/:id` | Stats (confirmed/declined/pending/opted-out), guest list, launch campaign |
+| Import guests | `/events/:id/guests/import` | Three-step CSV wizard (upload → preview → confirm), 5 MB limit |
+| Responses | `/events/:id/responses` | Paginated RSVP table, status filter, CSV export |
+
+All dashboard routes are protected by `middleware.ts`; unauthenticated requests redirect to `/login`.
+API calls go through a Next.js rewrite proxy (`/api/v1/*` → `:3001/api/v1/*`) — no CORS config needed.
 
 ---
 
