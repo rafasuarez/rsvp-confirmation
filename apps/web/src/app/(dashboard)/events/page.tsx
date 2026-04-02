@@ -13,12 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { eventsApi, type Event } from '@/lib/api'
 import { toast } from '@/components/ui/use-toast'
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-ES', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  })
-}
+import { formatDate } from '@/lib/format'
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([])
@@ -41,13 +36,19 @@ export default function EventsPage() {
     const dateValue = form.get('eventDate') as string
 
     try {
+      const eventDate = new Date(dateValue)
+      if (isNaN(eventDate.getTime())) {
+        toast({ title: 'Fecha inválida', description: 'Por favor selecciona una fecha válida', variant: 'destructive' })
+        return
+      }
       const newEvent = await eventsApi.create({
         name: form.get('name') as string,
-        eventDate: new Date(dateValue).toISOString(),
+        eventDate: eventDate.toISOString(),
         venue: (form.get('venue') as string) || undefined,
         description: (form.get('description') as string) || undefined,
       })
       setEvents((prev) => [newEvent, ...prev])
+      ;(e.target as HTMLFormElement).reset()
       setDialogOpen(false)
       toast({ title: 'Evento creado', description: newEvent.name })
     } catch (err) {

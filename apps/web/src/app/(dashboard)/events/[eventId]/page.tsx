@@ -13,15 +13,9 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
-import { StatusBadge } from '@/components/status-badge'
 import { eventsApi, guestsApi, rsvpApi, type Event, type Guest, type StatsResult } from '@/lib/api'
 import { toast } from '@/components/ui/use-toast'
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-ES', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  })
-}
+import { formatDate } from '@/lib/format'
 
 type StatCardProps = { label: string; value: number; icon: React.ReactNode; color?: string }
 
@@ -106,7 +100,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
     )
   }
 
-  const pendingGuests = guests.filter((g) => g.isActive).length
+  const pendingGuests = stats?.pending ?? 0
   const canLaunch = pendingGuests > 0
 
   return (
@@ -151,7 +145,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
 
       {/* Stats */}
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <StatCard
             label="Total invitados"
             value={stats.total}
@@ -175,6 +169,12 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
             value={stats.pending}
             icon={<Clock className="h-4 w-4" />}
             color="text-orange-500"
+          />
+          <StatCard
+            label="Baja voluntaria"
+            value={stats.optedOut}
+            icon={<UserX className="h-4 w-4" />}
+            color="text-muted-foreground"
           />
         </div>
       )}
@@ -215,7 +215,6 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
                   <TableHead>Nombre</TableHead>
                   <TableHead>Teléfono</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -224,9 +223,6 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
                     <TableCell className="font-medium">{guest.name}</TableCell>
                     <TableCell className="text-muted-foreground">{guest.phone}</TableCell>
                     <TableCell className="text-muted-foreground">{guest.email ?? '—'}</TableCell>
-                    <TableCell>
-                      <StatusBadge state="PENDING" />
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
