@@ -1,12 +1,8 @@
-import type { NextConfig } from 'next'
-
 const API_URL = process.env.API_URL ?? 'http://localhost:3001'
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   output: 'standalone',
-  experimental: {
-    typedRoutes: true,
-  },
   async rewrites() {
     return [
       {

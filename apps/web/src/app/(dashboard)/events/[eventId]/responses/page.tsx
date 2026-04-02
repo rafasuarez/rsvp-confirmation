@@ -13,6 +13,7 @@ import {
 import { StatusBadge } from '@/components/status-badge'
 import { rsvpApi, type GuestResponseRow, type StatsResult } from '@/lib/api'
 import { toast } from '@/components/ui/use-toast'
+import { formatDateShort } from '@/lib/format'
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'Todos' },
@@ -23,13 +24,6 @@ const STATUS_OPTIONS = [
 ]
 
 const PAGE_SIZE = 50
-
-function formatDate(iso: string | null) {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es-ES', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  })
-}
 
 export default function ResponsesPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = use(params)
@@ -166,7 +160,7 @@ export default function ResponsesPage({ params }: { params: Promise<{ eventId: s
                       {row.dietaryNotes || '—'}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatDate(row.submittedAt)}
+                      {formatDateShort(row.submittedAt)}
                     </TableCell>
                   </TableRow>
                 ))

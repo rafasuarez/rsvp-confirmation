@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { Suspense, useState, type FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authApi } from '@/lib/api'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
@@ -41,6 +41,45 @@ export default function LoginPage() {
   }
 
   return (
+    <form className="space-y-4" onSubmit={handleSubmit}>
+      <div className="space-y-1.5">
+        <Label htmlFor="email">Correo electrónico</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          placeholder="nombre@ejemplo.com"
+          disabled={loading}
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="password">Contraseña</Label>
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          required
+          disabled={loading}
+        />
+      </div>
+
+      {error && (
+        <p className="text-sm text-destructive text-center">{error}</p>
+      )}
+
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? 'Iniciando sesión…' : 'Iniciar sesión'}
+      </Button>
+    </form>
+  )
+}
+
+export default function LoginPage() {
+  return (
     <main className="min-h-screen flex items-center justify-center bg-muted/30">
       <div className="w-full max-w-sm space-y-6 p-8 bg-card rounded-xl shadow-sm border">
         <div className="text-center">
@@ -50,40 +89,9 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="space-y-1.5">
-            <Label htmlFor="email">Correo electrónico</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              placeholder="nombre@ejemplo.com"
-              disabled={loading}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Contraseña</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          {error && (
-            <p className="text-sm text-destructive text-center">{error}</p>
-          )}
-
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Iniciando sesión…' : 'Iniciar sesión'}
-          </Button>
-        </form>
+        <Suspense>
+          <LoginForm />
+        </Suspense>
       </div>
     </main>
   )
