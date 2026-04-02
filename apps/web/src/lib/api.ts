@@ -177,12 +177,12 @@ export const rsvpApi = {
 
   list: async (
     eventId: string,
-    params: { page?: number; limit?: number; status?: string },
+    params: { page?: number; limit?: number; status?: 'attending' | 'declined' | 'pending' | 'opted_out' },
   ): Promise<{ rows: GuestResponseRow[]; total: number; page: number; limit: number }> => {
     const qs = new URLSearchParams()
-    if (params.page) qs.set('page', String(params.page))
-    if (params.limit) qs.set('limit', String(params.limit))
-    if (params.status) qs.set('status', params.status)
+    if (params.page != null) qs.set('page', String(params.page))
+    if (params.limit != null) qs.set('limit', String(params.limit))
+    if (params.status != null) qs.set('status', params.status)
 
     const res = await fetch(
       `/api/v1/events/${eventId}/responses?${qs.toString()}`,
@@ -194,7 +194,15 @@ export const rsvpApi = {
       throw new Error('Unauthorized')
     }
 
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`)
+    }
+
     const body: PaginatedResponse<GuestResponseRow> = await res.json()
+    if (!body.success) {
+      throw new Error('Failed to load responses')
+    }
     return {
       rows: body.data,
       total: body.meta.total,
