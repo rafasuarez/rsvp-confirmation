@@ -30,6 +30,16 @@ export default function ImportPage({ params }: { params: Promise<{ eventId: stri
     const file = e.target.files?.[0]
     if (!file) return
 
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Archivo demasiado grande',
+        description: 'El archivo no puede superar 5MB.',
+        variant: 'destructive',
+      })
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
     setUploading(true)
     try {
       const data = await guestsApi.previewImport(eventId, file)
@@ -164,8 +174,8 @@ export default function ImportPage({ params }: { params: Promise<{ eventId: stri
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {preview.valid.map((g, i) => (
-                      <TableRow key={i}>
+                    {preview.valid.map((g) => (
+                      <TableRow key={`${g.phone}-${g.name}`}>
                         <TableCell>{g.name}</TableCell>
                         <TableCell className="font-mono text-sm">{g.phone}</TableCell>
                         <TableCell className="text-muted-foreground">{g.email ?? '—'}</TableCell>
