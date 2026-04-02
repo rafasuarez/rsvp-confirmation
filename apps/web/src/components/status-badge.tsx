@@ -21,9 +21,9 @@ const STATE_CONFIG: Record<
 
 export function StatusBadge({ state, isAttending }: StatusBadgeProps) {
   if (state === 'COMPLETE') {
-    return isAttending
-      ? <Badge variant="success">Confirmado</Badge>
-      : <Badge variant="destructive">Declinado</Badge>
+    if (isAttending === true) return <Badge variant="success">Confirmado</Badge>
+    if (isAttending === false) return <Badge variant="destructive">Declinado</Badge>
+    return <Badge variant="outline">Completado</Badge>
   }
 
   const config = STATE_CONFIG[state] ?? { label: state, variant: 'outline' as const }

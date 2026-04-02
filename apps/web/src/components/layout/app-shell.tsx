@@ -21,7 +21,11 @@ export function AppShell({ children }: AppShellProps) {
   const router = useRouter()
 
   async function handleLogout() {
-    await authApi.logout()
+    try {
+      await authApi.logout()
+    } catch {
+      // server-side logout failed; still clear client session
+    }
     router.push('/login')
   }
 
